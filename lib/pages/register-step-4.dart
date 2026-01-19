@@ -4,30 +4,34 @@ import 'package:flutter/services.dart';
 class RegisterStep4 extends StatelessWidget {
   const RegisterStep4({super.key});
 
-  // Função para formatar o ID Privado em blocos para melhor leitura visual
+  // Melhora a formatação para IDs de qualquer tamanho vindo do C++
   String _formatPrivateId(String id) {
-    if (id.length < 4) return id;
-    return id.replaceAllMapped(RegExp(r".{4}"), (match) => "${match.group(0)}-").replaceAll(RegExp(r"-$"), "");
+    if (id.isEmpty || id == "0") return "PENDENTE";
+    // Remove qualquer traço existente para reformatar do zero
+    String cleanId = id.replaceAll("-", "");
+    return cleanId.replaceAllMapped(
+      RegExp(r".{4}"), 
+      (match) => "${match.group(0)}-").replaceAll(RegExp(r"-$"), ""
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Extrai os argumentos garantindo que não sejam nulos
+    // REAVALIAÇÃO: Captura segura dos dados integrados
     final dynamic rawArgs = ModalRoute.of(context)!.settings.arguments;
-    final Map<String, dynamic> args = (rawArgs as Map<String, dynamic>?) ?? {
-      'pub': 0,
-      'priv': 0,
-    };
-
-    final String publicId = args['pub'].toString();
-    // Formata o ID de 20 dígitos do C++ para o padrão EnX
-    final String privateId = _formatPrivateId(args['priv'].toString());
+    
+    // Extrai os campos tratando possíveis nulos ou tipos diferentes (int/string)
+    final Map<String, dynamic> args = (rawArgs is Map<String, dynamic>) ? rawArgs : {};
+    
+    final String publicId = (args['pub'] ?? args['public_id'] ?? "0").toString();
+    final String privateId = _formatPrivateId((args['priv'] ?? args['private_id'] ?? "0").toString());
 
     return Scaffold(
+      backgroundColor: const Color(0xFF020306),
       appBar: AppBar(
         backgroundColor: Colors.transparent, 
         elevation: 0, 
-        automaticallyImplyLeading: false
+        automaticallyImplyLeading: false, // Bloqueia voltar para o registro
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 45),
@@ -41,7 +45,6 @@ class RegisterStep4 extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Alerta de Soberania
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -66,7 +69,10 @@ class RegisterStep4 extends StatelessWidget {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
+                  onPressed: () {
+                    // Limpa a pilha e volta para o início (Soberania do Estado)
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2A4E),
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -103,11 +109,16 @@ class RegisterStep4 extends StatelessWidget {
                   style: const TextStyle(color: Colors.white, fontFamily: 'Courier', fontSize: 16, fontWeight: FontWeight.bold)
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.copy, color: Colors.white24, size: 18),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: value));
-                },
+              Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.copy, color: Colors.white24, size: 18),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Copiado para a área de transferência"), duration: Duration(seconds: 1)),
+                    );
+                  },
+                ),
               )
             ],
           ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necessário para FilteringTextInputFormatter
+import 'package:flutter/services.dart';
 import '/nation.dart'; 
 
 class RegisterStep1 extends StatefulWidget {
@@ -26,9 +26,8 @@ class _RegisterStep1State extends State<RegisterStep1> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("NATION SELECTION", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-              
               const SizedBox(height: 20),
-
+              
               // --- TUTORIAL BOX ---
               Container(
                 padding: const EdgeInsets.all(15),
@@ -67,7 +66,7 @@ class _RegisterStep1State extends State<RegisterStep1> {
                 style: const TextStyle(color: Colors.white),
                 maxLength: 3,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Bloqueia letras
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   counterStyle: const TextStyle(color: Colors.white30),
                   hintText: "ID (1-999)",
@@ -89,7 +88,17 @@ class _RegisterStep1State extends State<RegisterStep1> {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: (selectedIso != null && _idController.text.isNotEmpty) 
-                    ? () => Navigator.pushNamed(context, '/register-step-2') 
+                    ? () {
+                        // Memória Consolidada: Enviando argumentos para a Step 2
+                        Navigator.pushNamed(
+                          context, 
+                          '/register-step-2',
+                          arguments: {
+                            'nation': selectedIso,
+                            'id': _idController.text,
+                          },
+                        );
+                      }
                     : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2A4E),

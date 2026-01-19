@@ -11,7 +11,12 @@ class _RegisterStep2State extends State<RegisterStep2> {
 
   @override
   Widget build(BuildContext context) {
+    // REAVALIAÇÃO: Captura os dados que vieram da Step 1
+    final Map<String, dynamic>? args = 
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF020306),
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 45),
@@ -22,7 +27,6 @@ class _RegisterStep2State extends State<RegisterStep2> {
               const Text("USERNICK", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
               const SizedBox(height: 20),
 
-              // Tutorial Corrigido
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -46,9 +50,12 @@ class _RegisterStep2State extends State<RegisterStep2> {
                 ],
                 decoration: const InputDecoration(
                   labelText: "NOME DE EXIBIÇÃO",
+                  labelStyle: TextStyle(color: Colors.white70),
                   hintText: "Ex: EnX_Dweller",
+                  hintStyle: TextStyle(color: Colors.white12),
                   filled: true,
                   fillColor: Color(0x1A1D2A4E),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF1D2A4E))),
                 ),
                 onChanged: (val) => setState(() {}),
               ),
@@ -60,7 +67,18 @@ class _RegisterStep2State extends State<RegisterStep2> {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: _nickController.text.length >= 3 
-                    ? () => Navigator.pushNamed(context, '/register-step-3') 
+                    ? () {
+                        // PARIDADE: Repassa Nation/ID da Step 1 + o novo Nick
+                        Navigator.pushNamed(
+                          context, 
+                          '/register-step-3',
+                          arguments: {
+                            'nation': args?['nation'] ?? '??',
+                            'id': args?['id'] ?? '000',
+                            'nick': _nickController.text,
+                          },
+                        );
+                      }
                     : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2A4E),

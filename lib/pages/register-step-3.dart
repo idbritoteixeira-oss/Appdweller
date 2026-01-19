@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class RegisterStep3 extends StatefulWidget {
-  const RegisterStep3({super.key}); // Removidos os parâmetros obrigatórios daqui
+  const RegisterStep3({super.key});
 
   @override
   _RegisterStep3State createState() => _RegisterStep3State();
@@ -16,25 +17,29 @@ class _RegisterStep3State extends State<RegisterStep3> {
   bool _isLoading = false;
 
   Future<void> _sendToIntegration() async {
-    // Captura os argumentos vindos do Step 2
-    final Map<String, dynamic> args = 
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    // MEMÓRIA CONSOLIDADA: Captura Nation, ID e Nick vindos das telas anteriores
+    final Map<String, dynamic>? args = 
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     
-    final String nick = args['nick'];
-    final String nation = args['nation'];
+    if (args == null) {
+      _showSnackbar("Erro: Dados de origem não encontrados.");
+      return;
+    }
 
     setState(() => _isLoading = true);
     
     try {
+      // SOBERANIA: O JSON agora envia o pacote completo para o C++
       final response = await http.post(
         Uri.parse('https://8b48ce67-8062-40e3-be2d-c28fd3ae4f01-00-117turwazmdmc.janeway.replit.dev/integration'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nick': nick,
+          'nick': args['nick'],
+          'nat': args['nation'],
+          'id': args['id'], // Novo dado incluído na varredura
           'key': _passController.text,
-          'nat': nation,
         }),
-      );
+      ).timeout(const Duration(seconds: 15)); // Evita o "girar" infinito
 
       final data = jsonDecode(response.body);
 
@@ -43,16 +48,15 @@ class _RegisterStep3State extends State<RegisterStep3> {
           Navigator.pushNamed(context, '/register-step-4', arguments: data);
         }
       } else {
-        _showSnackbar(data['message'] ?? "Erro na integração");
+        _showSnackbar(data['message'] ?? "Portal EnX: Acesso Negado");
       }
     } catch (e) {
-      _showSnackbar("Falha na conexão com o Núcleo EnX");
+      _showSnackbar("Falha de conexão: Verifique se o Portal está Online");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ... (restante do código build, tutorialBox e field permanecem iguais)
   void _showSnackbar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
@@ -63,7 +67,8 @@ class _RegisterStep3State extends State<RegisterStep3> {
                   _passController.text == _confirmController.text;
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      backgroundColor: const Color(0xFF020306),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 45),
         child: SingleChildScrollView(
@@ -81,10 +86,14 @@ class _RegisterStep3State extends State<RegisterStep3> {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: (isReady && !_isLoading) ? _sendToIntegration : null,
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D2A4E)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1D2A4E),
+                    disabledBackgroundColor: Colors.white10,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
                   child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white) 
-                    : const Text("FINALIZAR REGISTRO"),
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                    : const Text("FINALIZAR REGISTRO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -101,8 +110,13 @@ class _RegisterStep3State extends State<RegisterStep3> {
       keyboardType: TextInputType.number,
       style: const TextStyle(color: Colors.white),
       maxLength: 6,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        filled: true,
+        fillColor: const Color(0x1A1D2A4E),
+        enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF1D2A4E))),
         suffixIcon: suffix ? IconButton(
           icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: Colors.white38),
           onPressed: () => setState(() => _obscure = !_obscure),
