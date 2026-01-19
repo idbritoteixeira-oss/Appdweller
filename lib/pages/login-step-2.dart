@@ -14,7 +14,8 @@ class _LoginStep2State extends State<LoginStep2> {
   bool _isLoading = false;
   bool _obscure = true;
 
-  Future<void> _attemptLogin(String pubId) async {
+  // SOBERANIA: Agora recebemos pubId e nation para o roteamento correto no C++
+  Future<void> _attemptLogin(String pubId, String nation) async {
     setState(() => _isLoading = true);
 
     try {
@@ -24,19 +25,24 @@ class _LoginStep2State extends State<LoginStep2> {
         body: jsonEncode({
           'pub': pubId,
           'key': _passController.text,
+          'nat': nation, // <--- Fundamental para o C++ localizar o arquivo .dat
         }),
       );
+
+      // Log para depuração (Remover em produção)
+      print("Resposta do Núcleo: ${response.body}");
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        // ENX CONSOLIDADO: Enviando todos os dados do servidor para a Dashboard
         if (!mounted) return;
+
+        // Memória Consolidada: Levando os dados do Dweller para a Dashboard
         Navigator.pushNamedAndRemoveUntil(
           context, 
           '/dashboard', 
           (route) => false,
-          arguments: data, // <--- Aqui passamos Usernick, GeoIP e IDs
+          arguments: data, 
         );
       } else {
         _showError(data['message'] ?? "Credenciais inválidas.");
@@ -49,17 +55,21 @@ class _LoginStep2State extends State<LoginStep2> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent)
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Recuperando os argumentos do Step 1
     final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final String pubId = args['pub'];
+    final String nation = args['nat']; // <--- Resgatando a nação selecionada
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E19), // Cor de fundo padrão EnX
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      backgroundColor: const Color(0xFF020306),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 45),
         child: SingleChildScrollView(
@@ -67,18 +77,22 @@ class _LoginStep2State extends State<LoginStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("SECURITY KEY", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-              Text("ID: $pubId", style: const TextStyle(color: Colors.white24, fontSize: 12)),
+              const SizedBox(height: 5),
+              Text("ID: $pubId | TERRITÓRIO: $nation", style: const TextStyle(color: Colors.white24, fontSize: 10)),
+
               const SizedBox(height: 50),
+
               TextField(
                 controller: _passController,
                 obscureText: _obscure,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
-                style: const TextStyle(color: Colors.white, letterSpacing: 5),
-                onChanged: (v) => setState(() {}), // Atualiza estado do botão
+                style: const TextStyle(color: Colors.white, letterSpacing: 10, fontSize: 20),
+                onChanged: (v) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: "INSIRA SUA SENHA",
                   labelStyle: const TextStyle(color: Colors.white38),
+                  counterStyle: const TextStyle(color: Colors.white10),
                   suffixIcon: IconButton(
                     icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: Colors.white38),
                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -91,15 +105,16 @@ class _LoginStep2State extends State<LoginStep2> {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: (_passController.text.length == 6 && !_isLoading) 
-                      ? () => _attemptLogin(pubId) 
+                      ? () => _attemptLogin(pubId, nation) 
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2A4E),
-                    disabledBackgroundColor: Colors.white10
+                    disabledBackgroundColor: Colors.white10,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   child: _isLoading 
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                      : const Text("ACESSAR SISTEMA", style: TextStyle(color: Colors.white)),
+                      : const Text("ACESSAR SISTEMA", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

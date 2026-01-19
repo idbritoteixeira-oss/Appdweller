@@ -10,37 +10,44 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
-    // CAPTURA AUTOMÁTICA: Pega o JSON vindo do Login/Registro
-    final Map<String, dynamic> data = 
-        (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?) ?? {};
+    // Memória-segmentada: Captura e trata os dados como Map
+    final dynamic args = ModalRoute.of(context)?.settings.arguments;
+    final Map<String, dynamic> data = (args is Map<String, dynamic>) ? args : {};
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E19),
+      backgroundColor: const Color(0xFF020306), // Fundo profundo EnX
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(30.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho com Nick e Status
-              _header(data['usernick'] ?? 'HABITANTE', data['status'] ?? 'OFFLINE'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _header(data['usernick']?.toString() ?? 'HABITANTE', data['status']?.toString() ?? 'OFFLINE'),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.white24, size: 20),
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/login-step-1'),
+                  )
+                ],
+              ),
               
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
               
-              // Grade de Dados EnX
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
-                  childAspectRatio: 2.2, // Ajustado para melhor leitura
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 20,
+                  childAspectRatio: 2.5,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 25,
                   children: [
-                    _item("NATION", data['nat'] ?? '---'),
-                    _item("GEOIP", data['geoip'] ?? '0.0.0.0'),
-                    _item("DATETIME", data['datetime'] ?? '--/--/--'),
-                    _item("ID_INASX", data['id_inasx'] ?? '---'),
-                    _item("ID_PIGEON", data['id_pigeon'] ?? '---'),
-                    _item("ID_MARKET", data['id_market'] ?? '---'),
+                    _item("NATION", data['nat']),
+                    _item("GEOIP", data['geoip']),
+                    _item("DATETIME", data['datetime']),
+                    _item("ID_INASX", data['id_inasx']),
+                    _item("ID_PIGEON", data['id_pigeon']),
+                    _item("ID_MARKET", data['id_market']),
                   ],
                 ),
               ),
@@ -62,21 +69,22 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(nick.toUpperCase(), 
-          style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 2)),
+          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 2)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: isOp ? Colors.greenAccent.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
+            color: isOp ? Colors.greenAccent.withOpacity(0.05) : Colors.redAccent.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: isOp ? Colors.greenAccent.withOpacity(0.2) : Colors.redAccent.withOpacity(0.2))
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.circle, color: isOp ? Colors.greenAccent : Colors.redAccent, size: 8),
-              const SizedBox(width: 6),
+              Icon(Icons.circle, color: isOp ? Colors.greenAccent : Colors.redAccent, size: 6),
+              const SizedBox(width: 8),
               Text(status, 
-                style: TextStyle(color: isOp ? Colors.greenAccent : Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: isOp ? Colors.greenAccent : Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)),
             ],
           ),
         ),
@@ -84,15 +92,17 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _item(String label, String value) {
+  Widget _item(String label, dynamic value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 9, letterSpacing: 1.5)),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         const SizedBox(height: 4),
-        Text(value.toString(), 
-          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+        Text(
+          (value == null || value.toString().isEmpty) ? "---" : value.toString(), 
+          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace'),
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
