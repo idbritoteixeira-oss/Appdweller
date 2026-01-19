@@ -27,7 +27,7 @@ class _RegisterStep3State extends State<RegisterStep3> {
     
     try {
       final response = await http.post(
-        Uri.parse('http://172.31.71.34:8080/integration'),
+        Uri.parse('https://8b48ce67-8062-40e3-be2d-c28fd3ae4f01-00-117turwazmdmc.janeway.replit.dev/integration'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nick': nick,

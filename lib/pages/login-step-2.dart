@@ -19,7 +19,7 @@ class _LoginStep2State extends State<LoginStep2> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://172.31.71.34:8080/login'),
+        Uri.parse('https://8b48ce67-8062-40e3-be2d-c28fd3ae4f01-00-117turwazmdmc.janeway.replit.dev/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'pub': pubId,
