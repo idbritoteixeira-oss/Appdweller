@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class EnXService {
   // Endereço do seu Webserver C++
-  static const String _baseUrl = 'http://127.0.0.1:8080';
+  static const String _baseUrl = 'http://172.31.71.34:8080';
 
   static Future<Map<String, dynamic>?> sendIntegration({
     required String nick,
