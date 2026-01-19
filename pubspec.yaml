@@ -1,0 +1,25 @@
+name: dwellers
+description: Labs EnX/Dwellers
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  http: ^1.6.0
+
+flutter:
+  uses-material-design: true
+
+dev_dependencies:
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/logo.jpg"
+  adaptive_icon_background: "#0A0E19" # Cor de fundo do EnX
+  adaptive_icon_foreground: "assets/images/logo.jpg"
