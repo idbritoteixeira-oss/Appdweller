@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import essencial para a Soberania do Clipboard
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -10,12 +11,11 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
-    // Memória-segmentada: Captura e trata os dados como Map
     final dynamic args = ModalRoute.of(context)?.settings.arguments;
     final Map<String, dynamic> data = (args is Map<String, dynamic>) ? args : {};
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020306), // Fundo profundo EnX
+      backgroundColor: const Color(0xFF020306),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(30.0),
@@ -32,13 +32,11 @@ class _DashboardPageState extends State<DashboardPage> {
                   )
                 ],
               ),
-              
               const SizedBox(height: 40),
-              
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
-                  childAspectRatio: 2.5,
+                  childAspectRatio: 2.2, // Ajustado para dar espaço ao texto
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 25,
                   children: [
@@ -51,7 +49,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
               ),
-              
               const Center(
                 child: Text("ENX CORE SYSTEM v1.0", 
                 style: TextStyle(color: Colors.white10, fontSize: 10, letterSpacing: 4)),
@@ -93,17 +90,36 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _item(String label, dynamic value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-        const SizedBox(height: 4),
-        Text(
-          (value == null || value.toString().isEmpty) ? "---" : value.toString(), 
-          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace'),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+    String displayValue = (value == null || value.toString().isEmpty) ? "---" : value.toString();
+    
+    return GestureDetector(
+      onLongPress: () {
+        if (displayValue != "---") {
+          Clipboard.setData(ClipboardData(text: displayValue));
+          HapticFeedback.mediumImpact(); // Feedback tátil de sucesso
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("$label COPIADO"),
+              duration: const Duration(seconds: 1),
+              backgroundColor: Colors.blueAccent.withOpacity(0.8),
+            ),
+          );
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const SizedBox(height: 4),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Text(
+              displayValue, 
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

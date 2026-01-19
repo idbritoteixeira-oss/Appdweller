@@ -4,10 +4,8 @@ import 'package:flutter/services.dart';
 class RegisterStep4 extends StatelessWidget {
   const RegisterStep4({super.key});
 
-  // Melhora a formatação para IDs de qualquer tamanho vindo do C++
   String _formatPrivateId(String id) {
     if (id.isEmpty || id == "0") return "PENDENTE";
-    // Remove qualquer traço existente para reformatar do zero
     String cleanId = id.replaceAll("-", "");
     return cleanId.replaceAllMapped(
       RegExp(r".{4}"), 
@@ -17,12 +15,11 @@ class RegisterStep4 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // REAVALIAÇÃO: Captura segura dos dados integrados
+    // Captura segura dos dados retornados pelo servidor C++
     final dynamic rawArgs = ModalRoute.of(context)!.settings.arguments;
-    
-    // Extrai os campos tratando possíveis nulos ou tipos diferentes (int/string)
     final Map<String, dynamic> args = (rawArgs is Map<String, dynamic>) ? rawArgs : {};
     
+    // IDs recebidos da integração
     final String publicId = (args['pub'] ?? args['public_id'] ?? "0").toString();
     final String privateId = _formatPrivateId((args['priv'] ?? args['private_id'] ?? "0").toString());
 
@@ -31,7 +28,7 @@ class RegisterStep4 extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent, 
         elevation: 0, 
-        automaticallyImplyLeading: false, // Bloqueia voltar para o registro
+        automaticallyImplyLeading: false, 
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 45),
@@ -52,7 +49,7 @@ class RegisterStep4 extends StatelessWidget {
                   border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 0.5),
                 ),
                 child: const Text(
-                  "ALERTA DE SEGURANÇA:\n1. O ID PRIVADO é a sua chave digital.\n2. Se perder este código, o acesso ao EnX será revogado.\n3. Nunca compartilhe estes dados com terceiros.",
+                  "ALERTA DE SEGURANÇA:\n1. O ID PRIVADO é a sua chave digital.\n2. Se perder este código, o acesso será revogado.\n3. Nunca compartilhe estes dados.",
                   style: TextStyle(color: Colors.redAccent, fontSize: 11, height: 1.5, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -70,15 +67,20 @@ class RegisterStep4 extends StatelessWidget {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Limpa a pilha e volta para o início (Soberania do Estado)
-                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                    // SOBERANIA: Em vez de voltar ao início, envia o habitante direto para a Dashboard
+                    // Passando os argumentos 'args' que contêm o GeoIP e IDs recebidos do servidor.
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/dashboard', 
+                      (route) => false,
+                      arguments: args, 
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2A4E),
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   child: const Text(
-                    "CONCLUIR INTEGRAÇÃO", 
+                    "CONCLUIR E ENTRAR", 
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
                   ),
                 ),
@@ -114,8 +116,9 @@ class RegisterStep4 extends StatelessWidget {
                   icon: const Icon(Icons.copy, color: Colors.white24, size: 18),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: value));
+                    HapticFeedback.lightImpact(); // Pequena vibração ao copiar
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Copiado para a área de transferência"), duration: Duration(seconds: 1)),
+                      const SnackBar(content: Text("COPIADO"), duration: Duration(seconds: 1)),
                     );
                   },
                 ),
